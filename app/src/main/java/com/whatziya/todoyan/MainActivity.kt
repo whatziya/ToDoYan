@@ -18,11 +18,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxColors
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +49,14 @@ import java.util.Date
 import java.util.UUID
 import kotlin.random.Random
 
+class TodoItemsRepository {
+    private val todoList = mutableStateListOf<TodoItem>()
+    fun getTodoItems() = todoList
+    fun addTodoItem(item: TodoItem) = todoList.add(item)
+    fun removeTodoItem(item: TodoItem) = todoList.remove(item)
+}
+
+private val todoItemsRepository = TodoItemsRepository()
 fun generateRandomTodoItems(): List<TodoItem> {
     val todoItems = mutableListOf<TodoItem>()
 
@@ -117,7 +127,7 @@ class MainActivity : ComponentActivity() {
                         }
                         // Define the new screen route
                         composable("add_todo_screen") {
-                            AddTodoScreen()
+                            AddTodoScreen(onBack = { navController.navigateUp() })
                         }
                     }
                 }
@@ -127,48 +137,36 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen(onAddClick : () -> Unit, modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize()) { // Use Box to layer the button on top
+fun MainScreen(onAddClick: () -> Unit, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             Text(
                 "Мои дела",
-                modifier = Modifier
-                    .padding(top = 86.dp, start = 60.dp)
-                    .background(MaterialTheme.colorScheme.background),
+                modifier = Modifier.padding(top = 86.dp, start = 60.dp),
                 style = Typography.displayLarge
             )
             Row(
                 modifier = Modifier.padding(top = 5.dp, start = 60.dp)
             ) {
-                Text(
-                    "Выполнено - 5",
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.surface),
-                    style = Typography.bodyLarge,
-                    color = Color.LightGray
-                )
-                Spacer(modifier = Modifier.weight(1f)) // Spacer to push the Image to the end
+                Text("Выполнено - ${todoItemsRepository.getTodoItems().count { it.isCompleted }}", color = Color.LightGray, style = Typography.bodyLarge)
+                Spacer(modifier = Modifier.weight(1f))
                 Image(
                     painter = painterResource(R.drawable.ic_visible),
                     contentDescription = null,
-                    modifier = Modifier.padding(end = 18.dp) // Add end padding if needed
+                    modifier = Modifier.padding(end = 18.dp)
                 )
             }
-
             LazyColumn(
                 Modifier
                     .padding(top = 5.dp, start = 5.dp, end = 5.dp)
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.background)
             ) {
-                items(todoList.size) {
-                    ToDoContainer(todoList[it])
+                items(todoItemsRepository.getTodoItems().size) { index ->
+                    ToDoContainer(todoItemsRepository.getTodoItems()[index])
                 }
             }
         }
-
-        // Add the floating action button at the bottom end
         FloatingActionButton(
             onClick = onAddClick,
             modifier = Modifier
@@ -186,7 +184,7 @@ fun MainScreen(onAddClick : () -> Unit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun AddTodoScreen() {
+fun AddTodoScreen(onBack: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -207,78 +205,28 @@ fun ToDoContainer(data: TodoItem, modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Checkbox(
-            checked = data.isCompleted, onCheckedChange = {
-            }, enabled = !data.isCompleted, colors = if (data.isCompleted) {
-                CheckboxColors(
-                    checkedCheckmarkColor = Color.White,
-                    uncheckedCheckmarkColor = Color.Transparent,
-                    checkedBoxColor = ColorLightGreen,
-                    uncheckedBoxColor = Color.Transparent,
-                    disabledCheckedBoxColor = ColorLightGreen,
-                    disabledUncheckedBoxColor = Color.Transparent,
-                    disabledIndeterminateBoxColor = Color.Transparent,
-                    checkedBorderColor = ColorLightGreen,
-                    uncheckedBorderColor = Color.Transparent,
-                    disabledBorderColor = ColorLightGreen,
-                    disabledUncheckedBorderColor = Color.Transparent,
-                    disabledIndeterminateBorderColor = Color.Transparent
-                )
+            checked = data.isCompleted,
+            onCheckedChange = {},
+            enabled = !data.isCompleted,
+            colors = if (data.isCompleted) {
+                CheckboxDefaults.colors(checkedColor = ColorLightGreen)
             } else if (data.importance == Importance.Low || data.importance == Importance.Medium) {
-                CheckboxColors(
-                    checkedCheckmarkColor = Color.Transparent,
-                    uncheckedCheckmarkColor = Color.Transparent,
-                    checkedBoxColor = Color.Transparent,
-                    uncheckedBoxColor = Color.Transparent,
-                    disabledCheckedBoxColor = Color.Transparent,
-                    disabledUncheckedBoxColor = Color.Transparent,
-                    disabledIndeterminateBoxColor = Color.Transparent,
-                    checkedBorderColor = Color.Transparent,
-                    uncheckedBorderColor = ColorLightGray,
-                    disabledBorderColor = Color.Transparent,
-                    disabledUncheckedBorderColor = Color.Transparent,
-                    disabledIndeterminateBorderColor = Color.Transparent
-                )
+                CheckboxDefaults.colors(uncheckedColor = ColorLightGray)
             } else {
-                CheckboxColors(
-                    checkedCheckmarkColor = Color.Transparent,
-                    uncheckedCheckmarkColor = Color.Transparent,
-                    checkedBoxColor = Color.Transparent,
-                    uncheckedBoxColor = Color(0x99FF3B30),
-                    disabledCheckedBoxColor = Color.Transparent,
-                    disabledUncheckedBoxColor = Color.Transparent,
-                    disabledIndeterminateBoxColor = Color.Transparent,
-                    checkedBorderColor = Color.Transparent,
-                    uncheckedBorderColor = ColorLightRed,
-                    disabledBorderColor = Color.Transparent,
-                    disabledUncheckedBorderColor = Color.Transparent,
-                    disabledIndeterminateBorderColor = Color.Transparent
-                )
+                CheckboxDefaults.colors(uncheckedColor = ColorLightRed)
             }
         )
         if (data.importance != Importance.Medium) {
-            data.apply {
-                Text(
-                    if (importance == Importance.Low) "↓" else "!!",
-                    style = Typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp // Adjust font size as needed
-                    ),
-                    color = if (importance == Importance.Low) ColorLightGray else ColorLightRed
-                )
-            }
+            Text(
+                if (data.importance == Importance.Low) "↓" else "!!",
+                style = Typography.bodyLarge.copy(fontWeight = FontWeight.Bold, fontSize = 18.sp),
+                color = if (data.importance == Importance.Low) ColorLightGray else ColorLightRed
+            )
         }
-
-        Text(data.text, style = Typography.bodyLarge)
-
-        Spacer(modifier = Modifier.weight(1f)) // Add a spacer to push Image to the end
-
-        Image(
-            painter = painterResource(R.drawable.ic_info),
-            contentDescription = null
-        )
+        Text(data.text, style = Typography.bodyLarge, maxLines = 3)
+        Spacer(modifier = Modifier.weight(1f))
+        Image(painter = painterResource(R.drawable.ic_info), contentDescription = null)
     }
-
-
 }
 
 @Preview(showBackground = true)
