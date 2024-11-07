@@ -131,7 +131,7 @@ fun MainScreen(onAddClick : () -> Unit, modifier: Modifier = Modifier) {
     Box(modifier = modifier.fillMaxSize()) { // Use Box to layer the button on top
         Column(modifier = Modifier.fillMaxSize()) {
             Text(
-                "Мои делаa",
+                "Мои дела",
                 modifier = Modifier
                     .padding(top = 86.dp, start = 60.dp)
                     .background(MaterialTheme.colorScheme.background),
