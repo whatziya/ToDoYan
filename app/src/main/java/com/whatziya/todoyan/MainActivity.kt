@@ -67,7 +67,7 @@ fun generateRandomTodoItems(): List<TodoItem> {
         "Pay bills", "Send email to boss", "Arrange meeting with team", "Study for exams",
         "Water the plants", "Buy birthday gift", "Complete project report", "Practice coding"
     )
-
+//a
     for (i in 0 until 20) {
         val id = UUID.randomUUID().toString()
         val text = sampleTexts[i % sampleTexts.size]
